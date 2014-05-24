@@ -1,14 +1,13 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace CodeCampServer.UnitTests
 {
-    [TestFixture]
     public class GivenATestProject
     {
-        [Test]
+        [Fact]
         public void ThenTestsShouldRun()
         {
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
     }
 }
