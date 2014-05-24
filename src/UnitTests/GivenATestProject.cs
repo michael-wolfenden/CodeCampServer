@@ -7,7 +7,7 @@ namespace CodeCampServer.UnitTests
         [Fact]
         public void ThenTestsShouldRun()
         {
-            Assert.True(false);
+            Assert.True(true);
         }
     }
 }
