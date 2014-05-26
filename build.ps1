@@ -7,15 +7,16 @@ properties {
       $version = "0.0.0.1"
   }
   $release_number =  if ($env:BUILD_NUMBER) {"1.0.$env:BUILD_NUMBER.0"} else {$version}
-
-  $project_name   = "CodeCampServer"
-  $base_dir       = resolve-path .
-  $build_dir      = "$base_dir\build"
-  $source_dir     = "$base_dir\src"
-  $test_dir       = "$build_dir\test"
-  $result_dir     = "$build_dir\results"
-  $packages_dir   = "$source_dir\packages"
-  $unit_test_dlls =  @("*UnitTests.dll")
+  
+  $project_name       = "CodeCampServer"
+  $base_dir           = resolve-path .
+  $build_dir          = "$base_dir\build"
+  $source_dir         = "$base_dir\src"
+  $test_dir           = "$build_dir\test"
+  $result_dir         = "$build_dir\results"
+  $output_package_dir = "$build_dir\packages"
+  $packages_dir       = "$source_dir\packages"
+  $unit_test_dlls     =  @("*UnitTests.dll")
 
   $xunit_runner = @(gci $packages_dir -filter xunit.console.clr4.exe -recurse)[0].FullName
 }
@@ -29,7 +30,7 @@ task FirstBuild -depends Clean, Compile, RunAllUnitTests, WarnSlowBuild
 
 task DeveloperBuild -depends SetDebugBuild, Clean, Compile,  RunAllUnitTests
 
-task IntegrationBuild -depends SetReleaseBuild, CommonAssemblyInfo, Clean, Compile, RunAllUnitTests
+task IntegrationBuild -depends SetReleaseBuild, CommonAssemblyInfo, Clean, Compile, RunAllUnitTests, GenerateNugetPackage
 
 task SetDebugBuild {
     $script:project_config = "Debug"
@@ -39,7 +40,7 @@ task SetReleaseBuild {
     $script:project_config = "Release"
 }
 
-task help {
+task Help {
   Write-Help-Header
   Write-Help-Section-Header "Comprehensive Building"
   Write-Help-For-Alias "(default)" "Intended for first build or when you want a fresh, clean local copy"
@@ -64,7 +65,11 @@ task CommonAssemblyInfo {
 }
 
 task Compile -depends Clean, CommonAssemblyInfo { 
-    exec { msbuild.exe /t:build /v:q /P:VisualStudioVersion=12.0 /p:Configuration=$project_config /nologo $source_dir\$project_name.sln }
+    exec { msbuild.exe /t:build /v:q /p:VisualStudioVersion=12.0 /p:Configuration=$project_config /nologo $source_dir\$project_name.sln }
+}
+
+task GenerateNugetPackage{
+    exec { msbuild.exe /t:build /p:RunOctoPack=true /v:q /p:VisualStudioVersion=12.0 /p:Configuration=$project_config /nologo /p:OctoPackPackageVersion=$release_number /p:OctoPackPublishPackageToFileShare=$output_package_dir $source_dir\$project_name.sln }
 }
 
 task CopyAssembliesForTest -Depends Compile {
