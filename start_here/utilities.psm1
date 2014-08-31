@@ -1,10 +1,3 @@
-function Test() {
-    $makeCertPath = Get-MarkCertPath
-    $domain  ="codecampserver"
-   & $makeCertPath -r -pe -n "CN=$domain.localtest.me" -b `"$([DateTime]::Now.ToString("MM\/dd\/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM\/dd\/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
-       
-}
-
 function Add-SiteToIIS($siteName, $sitePhysicalPath)
 {
     if(!(Test-IsUserAdministrator)) {
