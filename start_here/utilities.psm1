@@ -42,7 +42,9 @@ function Add-SiteToIIS($siteName, $sitePhysicalPath)
     &$appCmdPath add apppool /name:$appPoolName /managedRuntimeVersion:v4.0 /managedPipelineMode:Integrated
     &$appCmdPath set config /section:applicationPools "/[name='$appPoolName'].processModel.identityType:NetworkService"
 
-    Write-Information "Creating site $siteFullName" 
+    Write-Information "Creating sites"
+    Write-Information "http://$domain.localtest.me"
+    Write-Information "https://$domain.localtest.me"
     &$appCmdPath add site /name:"$siteFullName" /physicalPath:$sitePhysicalPath /bindings:"http://$domain.localtest.me:80,https://$domain.localtest.me:443" 
     &$appCmdPath set app "$siteFullName/" /applicationPool:"$appPoolName"
 
@@ -50,7 +52,7 @@ function Add-SiteToIIS($siteName, $sitePhysicalPath)
     &$AppCmdPath set config /section:anonymousAuthentication /username:"" --password
      
     # Give Network Service persmission to read the site files
-    & icacls "$sitePhysicalPath" /inheritance:e /T /grant """NETWORK SERVICE:(OI)(CI)F"""
+    #& icacls "$sitePhysicalPath" /inheritance:e /T /grant """NETWORK SERVICE:(OI)(CI)F"""
 
     $cert = New-Certificate $makeCertPath $domain
     Write-Host "Using SSL Certificate: $($cert.Thumbprint))"
@@ -66,6 +68,8 @@ function Add-SiteToIIS($siteName, $sitePhysicalPath)
     Write-Host " http://$domain.localtest.me" -foregroundcolor green
     Write-Host " https://$domain.localtest.me" -foregroundcolor green
     Write-Host ""
+    Write-Host " Modify your VS Web Settings to Servers -> External Host and Project Url -> https://$domain.localtest.me"
+    Write-Host ""    
     Write-Host " If you are getting a 'HTTP Error 403.14 - Forbidden' error when access those urls"
     Write-Host " , make sure asp.net 4.5 has been registered in IIS by doing the following:"
     Write-Host " Turn on 'IIS-ASPNET45' in 'Turn Windows Features On/Off' under 'Internet Information Services"
@@ -92,7 +96,6 @@ function Test-IISInstalled() {
     
     return $installed
 }
-
 
 function Get-MarkCertPath()
 {
