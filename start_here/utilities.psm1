@@ -1,3 +1,10 @@
+function Test() {
+    $makeCertPath = Get-MarkCertPath
+    $domain  ="codecampserver"
+   & $makeCertPath -r -pe -n "CN=$domain.localtest.me" -b `"$([DateTime]::Now.ToString("MM\/dd\/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM\/dd\/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
+       
+}
+
 function Add-SiteToIIS($siteName, $sitePhysicalPath)
 {
     if(!(Test-IsUserAdministrator)) {
@@ -50,13 +57,13 @@ function Add-SiteToIIS($siteName, $sitePhysicalPath)
     &$AppCmdPath set config /section:anonymousAuthentication /username:"" --password
      
     # Give Network Service persmission to read the site files
-    #& icacls "$sitePhysicalPath" /inheritance:e /T /grant """NETWORK SERVICE:(OI)(CI)F"""
+    & icacls "$sitePhysicalPath" /inheritance:e /T /grant """NETWORK SERVICE:(OI)(CI)F"""
 
-    $thumbprint = New-Certificate $makeCertPath $domain
-    Write-Host "Using SSL Certificate: $thumbprint)"
+    $cert = New-Certificate $makeCertPath $domain
+    Write-Host "Using SSL Certificate: $($cert.Thumbprint))"
 
     # Set the Certificate
-    Invoke-Netsh http add sslcert hostnameport="$domain.localtest.me:443" certhash="$thumbprint" certstorename=Root appid="{$([Guid]::NewGuid().ToString())}"
+    Invoke-Netsh http add sslcert hostnameport="$domain.localtest.me:443" certhash="$($cert.Thumbprint)" certstorename=My appid="{$([Guid]::NewGuid().ToString())}"
 
     Write-Host ""
     Write-Host "**********************************************************************" -foregroundcolor yellow
@@ -130,23 +137,19 @@ function Write-Information([string] $message)
 function New-Certificate($makeCertPath, $domain)
 {
     # Check for a cert
-    $cert = @(dir -l "Cert:\CurrentUser\Root" | where {$_.Subject -eq "CN=$domain.localtest.me"})
-    if($cert.Length -eq 0) {
-        $cert = @(dir -l "Cert:\LocalMachine\Root" | where {$_.Subject -eq "CN=$domain.localtest.me"})
-    }
+    $cert = @(dir -l "Cert:\LocalMachine\My" | where {$_.Subject -eq "CN=$domain.localtest.me"})
 
     if($cert.Length -eq 0) {
         Write-Information "Generating a Self-Signed SSL Certificate for $domain.localtest.me"
-        # Generate one
-        & $makeCertPath -r -pe -n "CN=$domain.localtest.me" -b `"$([DateTime]::Now.ToString("MM\/dd\/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM\/dd\/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss root -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
-        $cert = @(dir -l "Cert:\LocalMachine\Root" | where {$_.Subject -eq "CN=$domain.localtest.me"})
+        & $makeCertPath -r -pe -n "CN=$domain.localtest.me" -b `"$([DateTime]::Now.ToString("MM\/dd\/yyy"))`" -e `"$([DateTime]::Now.AddYears(10).ToString("MM\/dd\/yyy"))`" -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
+        $cert = @(dir -l "Cert:\LocalMachine\My" | where {$_.Subject -eq "CN=$domain.localtest.me"})
     }
 
     if($cert.Length -eq 0) {
         throw "Failed to create an SSL Certificate"
     }
 
-    return $cert.Thumbprint
+    return $cert
 }
 
 function Invoke-Netsh() {
