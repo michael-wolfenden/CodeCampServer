@@ -21,12 +21,9 @@ properties {
   $xunit_runner = @(gci $packages_dir -filter xunit.console.clr4.exe -recurse)[0].FullName
 }
 
-task default -depends FirstBuild
-task dev -depends DeveloperBuild
+task default -depends DeveloperBuild
 task ci -depends IntegrationBuild
 task unit -depends RunAllUnitTests
-
-task FirstBuild -depends Clean, Compile, RunAllUnitTests, WarnSlowBuild
 
 task DeveloperBuild -depends SetDebugBuild, Clean, Compile,  RunAllUnitTests
 
@@ -43,8 +40,7 @@ task SetReleaseBuild {
 task Help {
   Write-Help-Header
   Write-Help-Section-Header "Comprehensive Building"
-  Write-Help-For-Alias "(default)" "Intended for first build or when you want a fresh, clean local copy"
-  Write-Help-For-Alias "dev" "Optimized for local dev; Most noteably UPDATES databases instead of REBUILDING"
+  Write-Help-For-Alias "(default)" "Optimized for local development"
   Write-Help-For-Alias "ci" "Continuous Integration build (long and thorough) with packaging"
   Write-Help-Section-Header "Running Tests"
   Write-Help-For-Alias "unit" "All unit tests"
@@ -78,15 +74,6 @@ task CopyAssembliesForTest -Depends Compile {
 
 task RunAllUnitTests -Depends CopyAssembliesForTest {
     $unit_test_dlls | %{ run_tests $_ }
-}
-
-task WarnSlowBuild {
-  write-host ""
-  write-host "Warning: " -foregroundcolor Yellow -nonewline;
-  write-host "The default build you just ran is primarily intended for initial "
-  write-host "environment setup. While developing you most likely want the quicker dev"
-  write-host "build task. For a full list of common build tasks, run: "
-  write-host " > build.bat help"
 }
 
 # -------------------------------------------------------------------------------------------------------------
