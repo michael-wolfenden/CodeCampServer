@@ -195,7 +195,7 @@
           <IISUrl>https://codecampserver.localtest.me/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>True</UseCustomServer>
-          <CustomServerUrl>https://codecampserver.localtest.me/</CustomServerUrl>
+          <CustomServerUrl>https://codecampserver.localtest.me:1338</CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
